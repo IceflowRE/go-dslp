@@ -1,0 +1,17 @@
+# published under the MIT License
+# https://opensource.org/licenses/mit-license.php
+
+version: '3.7'
+
+services:
+  go-dslp:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 28813:28813
+    logging:
+      options:
+        max-size: "2000k"
+        max-file: "10"
