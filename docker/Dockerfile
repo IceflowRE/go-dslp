@@ -10,7 +10,7 @@ RUN apk update \
 COPY ./ /build/go-dslp
 
 RUN cd /build/go-dslp \
-    && make
+    && go build -x -o go-dslp
 
 ###################################
 # Set the base image
