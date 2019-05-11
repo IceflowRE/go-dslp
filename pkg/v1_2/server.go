@@ -79,7 +79,6 @@ func ScanMessage(data []byte) (message.IMessage, []byte) {
 	return nil, data
 }
 
-
 // HandleMessage requires a valid message
 func handleMessage(msg message.IMessage, conn net.Conn) error {
 	switch msg.GetType() {

@@ -60,7 +60,7 @@ func sendToGroup(conn net.Conn, msg *Message) error {
 		for member := range value {
 			// do not send to ourself again
 			//if member != conn {
-				message.SendMessage(member, msg)
+			message.SendMessage(member, msg)
 			//}
 		}
 	} else {

@@ -39,7 +39,7 @@ func unregisterUser(conn net.Conn, nick string) error {
 	if tmp, ok := nickConn[nick]; !ok {
 		return errors.New("nick " + nick + " is not registered")
 	} else if tmp != conn {
-		return errors.New("nick "+nick+" is not registered by you")
+		return errors.New("nick " + nick + " is not registered by you")
 	}
 	delete(connNick, conn)
 	delete(nickConn, nick)
@@ -79,9 +79,9 @@ func nickValid(conn net.Conn, nick string) bool {
 // requires a valid message
 func sendToUser(conn net.Conn, msg *Message) error {
 	if !nickValid(conn, msg.Header[0]) {
-		return errors.New("nick "+msg.Header[0]+" is not registered by you")
+		return errors.New("nick " + msg.Header[0] + " is not registered by you")
 	} else if !nickExist(msg.Header[1]) {
-		return errors.New("nick"+msg.Header[1]+" is not registered")
+		return errors.New("nick" + msg.Header[1] + " is not registered")
 	}
 	nickConnLock.Lock()
 	defer nickConnLock.Unlock()
