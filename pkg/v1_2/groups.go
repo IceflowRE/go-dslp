@@ -12,7 +12,7 @@ import (
 var groups = make(map[string]map[net.Conn]struct{})
 var groupsLock = sync.RWMutex{}
 
-func JoinGroup(conn net.Conn, group string) {
+func joinGroup(conn net.Conn, group string) {
 	groupsLock.Lock()
 	defer groupsLock.Unlock()
 	if _, ok := groups[group]; !ok {
@@ -22,7 +22,7 @@ func JoinGroup(conn net.Conn, group string) {
 	utils.Println(conn, "GROUP JOIN", group)
 }
 
-func LeaveAllGroups(conn net.Conn) {
+func leaveAllGroups(conn net.Conn) {
 	groupsLock.Lock()
 	defer groupsLock.Unlock()
 	for group, value := range groups {
@@ -36,7 +36,7 @@ func LeaveAllGroups(conn net.Conn) {
 	}
 }
 
-func LeaveGroup(conn net.Conn, group string) error {
+func leaveGroup(conn net.Conn, group string) error {
 	groupsLock.Lock()
 	defer groupsLock.Unlock()
 	if value, ok := groups[group]; ok {
@@ -52,13 +52,13 @@ func LeaveGroup(conn net.Conn, group string) error {
 	return errors.New("you are not a member of this group")
 }
 
-func SendToGroup(group string, content string) {
+func sendToGroup(group string, content string) {
 	groupsLock.RLock()
 	defer groupsLock.RUnlock()
 	msg := NewGroupNotify(group, content)
 	if value, ok := groups[group]; ok {
 		for member := range value {
-			message.SendMessage(msg, member)
+			message.SendMessage(member, msg)
 		}
 	}
 }

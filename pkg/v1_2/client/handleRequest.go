@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -22,7 +21,7 @@ func HandleRequest(conn net.Conn) {
 			if err != io.EOF {
 				log.Println("read error:", err)
 			}
-			break
+			return
 		}
 		buf = append(buf, tmp[:n]...)
 
@@ -38,7 +37,8 @@ func HandleRequest(conn net.Conn) {
 					msgBuf.Add(msg)
 				}
 				if err != nil {
-					conn.Write(v1_2.NewErrorMsg(err.Error()).ToBytes())
+					message.SendMessage(conn, v1_2.NewErrorMsg(err.Error()))
+					return
 				}
 			}
 
@@ -47,9 +47,8 @@ func HandleRequest(conn net.Conn) {
 		}
 
 		if len(buf) > 16384 {
-			conn.Write(v1_2.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting.").ToBytes())
-			fmt.Println("Message exceeded 16384 bytes size. Disconnecting.")
-			break
+			message.SendMessage(conn, v1_2.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting."))
+			return
 		}
 	}
 }

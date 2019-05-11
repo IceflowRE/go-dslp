@@ -8,10 +8,9 @@ import (
 	"strings"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
 )
 
-var RxMessage = regexp.MustCompile(`(?:^|\r\n)(?:dslp\/1\.2)\r\n(` + strings.Join(Types, "|") + `)\r\n(?:((?:.|\r|\n)*?)\r\n)?(?:dslp\/end)\r\n`)
+var rxMessage = regexp.MustCompile(`(?:^|\r\n)(?:dslp\/1\.2)\r\n(` + strings.Join(Types, "|") + `)\r\n(?:((?:.|\r|\n)*?)\r\n)?(?:dslp\/end)\r\n`)
 
 const (
 	TRequestTime  = "request time"
@@ -27,8 +26,9 @@ var Types = []string{TRequestTime, TResponseTime, TGroupJoin, TGroupLeave, TGrou
 
 type Message struct {
 	message.IMessage
-	Header  string
-	Type    string
+	Header string
+	Type   string
+	// excludes the ending \r\n
 	Content []byte
 	End     string
 }
@@ -45,8 +45,11 @@ func (msg *Message) GetType() string {
 }
 
 func (msg *Message) GetContent() *string {
-	tmp := string(msg.Content)
-	return &tmp
+	if msg.Content != nil {
+		tmp := string(msg.Content)
+		return &tmp
+	}
+	return nil
 }
 
 func (msg *Message) ToBytes() []byte {
@@ -57,6 +60,7 @@ func (msg *Message) ToBytes() []byte {
 	buf.WriteString("\r\n")
 	if msg.Content != nil {
 		buf.Write(msg.Content)
+		buf.WriteString("\r\n")
 	}
 	buf.WriteString(msg.End)
 	buf.WriteString("\r\n")
@@ -114,31 +118,6 @@ func (msg *Message) Valid() error {
 	}
 	if errMsg != "" {
 		return errors.New("type (" + msg.Type + ") " + errMsg)
-	}
-	return nil
-}
-
-// HandleMessage requires a valid message
-func HandleMessage(msg message.IMessage, conn net.Conn) error {
-	switch msg.GetType() {
-	case TRequestTime:
-		message.SendMessage(NewResponseTimeMsg(), conn)
-	case TResponseTime:
-		// do nothing
-	case TGroupJoin:
-		JoinGroup(conn, *msg.GetContent())
-	case TGroupLeave:
-		return LeaveGroup(conn, *msg.GetContent())
-	case TGroupNotify:
-		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
-		SendToGroup(split[0], split[1])
-	case TPeerNotify:
-		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
-		SendPeerNotify(net.ParseIP(split[0]), split[1])
-	case TError:
-		utils.Println(conn, "Error message received", *msg.GetContent())
-	default:
-		utils.Println(conn, "type invalid", msg.GetType())
 	}
 	return nil
 }

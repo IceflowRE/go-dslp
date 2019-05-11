@@ -3,13 +3,12 @@ package v2_0
 import (
 	"bytes"
 	"errors"
-	"net"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
 )
 
 var RxHeader = regexp.MustCompile(`(?:^|\r\n)(?:dslp\/2\.0)\r\n(` + strings.Join(Types, "|") + `)\r\n(?:((?:.|\r|\n)*?)\r\n)?(?:dslp\/body)\r\n`)
@@ -37,7 +36,8 @@ type Message struct {
 	Type      string
 	// header slice excludes the type
 	Header []string
-	Body   []byte
+	// includes the probably last line ending \r\n in difference to the 1.2
+	Body []byte
 }
 
 func NewMessage() *Message {
@@ -81,8 +81,6 @@ func (msg *Message) ToBytes() []byte {
 	buf.WriteString("\r\n")
 	if msg.Body != nil {
 		buf.Write(msg.Body)
-		buf.WriteString("\r\n")
-
 	}
 	return buf.Bytes()
 }
@@ -103,17 +101,40 @@ func (msg *Message) UpdateHeader() error {
 			if len(msg.Header) > 0 {
 				newHeader[0] = msg.Header[0]
 			}
-			newHeader[1] = strconv.Itoa(len(msg.Body))
 			msg.Header = newHeader
 		}
-	//case TUserJoin:
-	//case TUserLeave:
-	//case TUserTextNotify:
-	//case TUserFileNotify:
+		msg.Header[1] = strconv.Itoa(bytes.Count(msg.Body, LineBreak))
+	case TUserJoin: // cannot create header for this
+		return nil
+	case TUserLeave: // cannot create header for this
+		return nil
+	case TUserTextNotify:
+		if msg.Header == nil || len(msg.Header) != 3 {
+			newHeader := make([]string, 3)
+			for idx, val := range msg.Header {
+				newHeader[idx] = val
+				if idx == 1 {
+					break
+				}
+			}
+			msg.Header = newHeader
+		}
+		msg.Header[2] = strconv.Itoa(bytes.Count(msg.Body, LineBreak))
+	case TUserFileNotify:
+		if msg.Header == nil || len(msg.Header) != 5 {
+			newHeader := make([]string, 5)
+			for idx, val := range msg.Header {
+				newHeader[idx] = val
+				if idx == 3 {
+					break
+				}
+			}
+			msg.Header = newHeader
+		}
+		msg.Header[4] = strconv.Itoa(len(msg.Body))
 	case TError:
-		newHeader := make([]string, 1)
-		newHeader[0] = strconv.Itoa(len(msg.Body))
-		msg.Header = newHeader
+		msg.Header = make([]string, 1)
+		msg.Header[0] = strconv.Itoa(len(msg.Body))
 	default:
 		errors.New("don't know how to make a header for type " + msg.Type)
 	}
@@ -121,6 +142,7 @@ func (msg *Message) UpdateHeader() error {
 }
 
 func (msg *Message) Valid() error {
+	fmt.Println(msg == nil)
 	var errMsg string
 	switch msg.Type {
 	case TRequestTime:
@@ -129,38 +151,93 @@ func (msg *Message) Valid() error {
 		} else if msg.Body != nil {
 			errMsg = "must have an empty body"
 		}
+		// do not check time format
 	case TResponseTime:
 		if msg.Header != nil {
 			errMsg = "header must have no additional data"
-		} else if msg.Body == nil || len(msg.Body) != 1 {
+		} else if msg.Body == nil || bytes.Count(msg.Body, LineBreak) != 1 {
 			errMsg = "must have one body line"
 		}
 	case TGroupJoin:
-		if msg.Header == nil || len(msg.Header) != 1 || msg.Header[0] == "" {
-			errMsg = "header must contain the group to join"
+		if msg.Header == nil || len(msg.Header) != 1 {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "group name cannot be empty"
+		} else if strings.HasPrefix(msg.Header[0], "dslp/") {
+			errMsg = "group name cannot begin with 'dslp/'"
 		} else if msg.Body != nil {
 			errMsg = "must have an empty body"
 		}
 	case TGroupLeave:
-		if msg.Header == nil || len(msg.Header) != 1 || msg.Header[0] == "" {
-			errMsg = "header must contain the group to leave"
+		if msg.Header == nil || len(msg.Header) != 1 {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "group name cannot be empty"
 		} else if msg.Body != nil {
 			errMsg = "must have an empty body"
 		}
 	case TGroupNotify:
-		if msg.Header == nil || len(msg.Header) != 2 || msg.Header[0] == "" {
-			errMsg = "header must contain the group to notify and the correct number of lines"
+		if msg.Header == nil || len(msg.Header) != 2 {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "group name cannot be empty"
 		} else if lines, err := strconv.Atoi(msg.Header[1]); err != nil {
-			errMsg = "header must contain the group to notify and the correct number of lines"
-		} else if lines != len(msg.Body) {
+			errMsg = "header must contain the body size"
+		} else if bytes.Count(msg.Body, LineBreak) != lines {
+			errMsg = "body does not match the size written in header"
+		}
+	case TUserJoin:
+		if msg.Header == nil || len(msg.Header) != 1 || msg.Header[0] == "" {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "username cannot be empty"
+		} else if strings.HasPrefix(msg.Header[0], "dslp/") {
+			errMsg = "username cannot begin with 'dslp/'"
+		} else if msg.Body != nil {
+			errMsg = "must have an empty body"
+		}
+	case TUserLeave:
+		if msg.Header == nil || len(msg.Header) != 1 || msg.Header[0] == "" {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "username cannot be empty"
+		} else if msg.Body != nil {
+			errMsg = "must have an empty body"
+		}
+	case TUserTextNotify:
+		if msg.Header == nil || len(msg.Header) != 3 {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "sender name cannot be empty"
+		} else if msg.Header[1] == "" {
+			errMsg = "target name cannot be empty"
+		} else if lines, err := strconv.Atoi(msg.Header[2]); err != nil {
+			errMsg = "header must contain the body size"
+		} else if bytes.Count(msg.Body, LineBreak) != lines {
+			errMsg = "body does not match the size written in header"
+		}
+	case TUserFileNotify:
+		if msg.Header == nil || len(msg.Header) != 5 {
+			errMsg = "header does not contain all required data"
+		} else if msg.Header[0] == "" {
+			errMsg = "sender name cannot be empty"
+		} else if msg.Header[1] == "" {
+			errMsg = "target name cannot be empty"
+		} else if msg.Header[2] == "" {
+			errMsg = "file name cannot be empty"
+		} else if msg.Header[3] == "" {
+			errMsg = "mime type cannot be empty"
+		} else if bodySize, err := strconv.Atoi(msg.Header[4]); err != nil {
+			errMsg = "header must contain the body size"
+		} else if len(msg.Body) != bodySize {
 			errMsg = "body does not match the size written in header"
 		}
 	case TError:
 		if msg.Header == nil || len(msg.Header) != 1 {
-			errMsg = "header must contain the correct number of lines"
+			errMsg = "header does not contains all required data"
 		} else if lines, err := strconv.Atoi(msg.Header[0]); err != nil {
-			errMsg = "header must contain the correct number of lines"
-		} else if lines != len(msg.Body) {
+			errMsg = "header must contain the body size"
+		} else if bytes.Count(msg.Body, LineBreak) == lines {
 			errMsg = "body does not match the size written in header"
 		}
 	default:
@@ -168,28 +245,6 @@ func (msg *Message) Valid() error {
 	}
 	if errMsg != "" {
 		return errors.New("type (" + msg.Type + ") " + errMsg)
-	}
-	return nil
-}
-
-// HandleMessage requires a valid message
-func HandleMessage(msg message.IMessage, conn net.Conn) error {
-	switch msg.GetType() {
-	case TRequestTime:
-		message.SendMessage(NewResponseTimeMsg(), conn)
-	case TResponseTime:
-		// do nothing
-	case TGroupJoin:
-		JoinGroup(conn, *msg.GetContent())
-	case TGroupLeave:
-		return LeaveGroup(conn, *msg.GetContent())
-	case TGroupNotify:
-		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
-		SendToGroup(split[0], split[1])
-	case TError:
-		utils.Println(conn, "Error message received", *msg.GetContent())
-	default:
-		utils.Println(conn, "type invalid", msg.GetType())
 	}
 	return nil
 }

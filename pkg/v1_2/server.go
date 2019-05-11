@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
 	"github.com/IceflowRE/go-dslp/pkg/utils"
@@ -12,10 +13,10 @@ import (
 
 func HandleRequest(conn net.Conn) {
 	utils.Println(conn, "accepted connection", "")
-	AddConn(conn)
+	addConn(conn)
 	defer utils.Println(conn, "closed connection", "")
-	defer LeaveAllGroups(conn)
-	defer RemoveConn(conn)
+	defer leaveAllGroups(conn)
+	defer removeConn(conn)
 	defer conn.Close()
 
 	buf := make([]byte, 0, 1024) // big buffer
@@ -26,7 +27,7 @@ func HandleRequest(conn net.Conn) {
 			if err != io.EOF {
 				log.Println("read error:", err)
 			}
-			break
+			return
 		}
 		buf = append(buf, tmp[:n]...)
 
@@ -39,16 +40,17 @@ func HandleRequest(conn net.Conn) {
 			msg, buf = ScanMessage(buf)
 			if msg != nil {
 				err = msg.Valid()
-				if msg.GetContent() != nil {
-					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), *msg.GetContent())
+				if content := msg.GetContent(); content != nil {
+					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), *content)
 				} else {
 					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), nil)
 				}
 				if err == nil {
-					err = HandleMessage(msg, conn)
+					err = handleMessage(msg, conn)
 				}
 				if err != nil {
-					conn.Write(NewErrorMsg(err.Error()).ToBytes())
+					message.SendMessage(conn, NewErrorMsg(err.Error()))
+					return
 				}
 			}
 
@@ -57,23 +59,48 @@ func HandleRequest(conn net.Conn) {
 		}
 
 		if len(buf) > 16384 {
-			conn.Write(NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting.").ToBytes())
-			break
+			message.SendMessage(conn, NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting."))
+			return
 		}
 	}
 }
 
 func ScanMessage(data []byte) (message.IMessage, []byte) {
-	res := RxMessage.FindSubmatchIndex(data)
+	res := rxMessage.FindSubmatchIndex(data)
 	if res != nil {
 		msg := NewMessage()
 		msg.Type = string(data[res[2]:res[3]])
 		if res[4] != -1 {
 			msg.Content = data[res[4]:res[5]]
 		}
-
 		return msg, data[res[1]:]
 	}
 
 	return nil, data
+}
+
+
+// HandleMessage requires a valid message
+func handleMessage(msg message.IMessage, conn net.Conn) error {
+	switch msg.GetType() {
+	case TRequestTime:
+		message.SendMessage(conn, NewResponseTimeMsg())
+	case TResponseTime:
+		// do nothing
+	case TGroupJoin:
+		joinGroup(conn, *msg.GetContent())
+	case TGroupLeave:
+		return leaveGroup(conn, *msg.GetContent())
+	case TGroupNotify:
+		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
+		sendToGroup(split[0], split[1])
+	case TPeerNotify:
+		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
+		sendPeerNotify(net.ParseIP(split[0]), split[1])
+	case TError:
+		utils.Println(conn, "Error message received", *msg.GetContent())
+	default:
+		utils.Println(conn, "type invalid", msg.GetType())
+	}
+	return nil
 }

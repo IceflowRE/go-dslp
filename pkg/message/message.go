@@ -16,7 +16,7 @@ type IMessage interface {
 	Valid() error
 }
 
-func SendMessage(msg IMessage, conn net.Conn) {
+func SendMessage(conn net.Conn, msg IMessage) {
 	_, err := conn.Write(msg.ToBytes())
 	if err != nil {
 		log.Println(err)

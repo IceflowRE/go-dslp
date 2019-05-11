@@ -12,7 +12,7 @@ import (
 var groups = make(map[string]map[net.Conn]struct{})
 var groupsLock = sync.RWMutex{}
 
-func JoinGroup(conn net.Conn, group string) {
+func joinGroup(conn net.Conn, group string) {
 	groupsLock.Lock()
 	defer groupsLock.Unlock()
 	if _, ok := groups[group]; !ok {
@@ -22,7 +22,7 @@ func JoinGroup(conn net.Conn, group string) {
 	utils.Println(conn, "GROUP JOIN", group)
 }
 
-func LeaveAllGroups(conn net.Conn) {
+func leaveAllGroups(conn net.Conn) {
 	groupsLock.Lock()
 	defer groupsLock.Unlock()
 	for group, value := range groups {
@@ -36,7 +36,7 @@ func LeaveAllGroups(conn net.Conn) {
 	}
 }
 
-func LeaveGroup(conn net.Conn, group string) error {
+func leaveGroup(conn net.Conn, group string) error {
 	groupsLock.Lock()
 	defer groupsLock.Unlock()
 	if value, ok := groups[group]; ok {
@@ -49,16 +49,22 @@ func LeaveGroup(conn net.Conn, group string) error {
 			return nil
 		}
 	}
-	return errors.New("you are not a member of this group")
+	return errors.New("you are not a member of group " + group)
 }
 
-func SendToGroup(group string, content string) {
+// requires a valid message
+func sendToGroup(conn net.Conn, msg *Message) error {
 	groupsLock.RLock()
 	defer groupsLock.RUnlock()
-	msg := NewGroupNotify(group, content)
-	if value, ok := groups[group]; ok {
+	if value, ok := groups[msg.Header[0]]; ok {
 		for member := range value {
-			message.SendMessage(msg, member)
+			// do not send to ourself again
+			//if member != conn {
+				message.SendMessage(member, msg)
+			//}
 		}
+	} else {
+		return errors.New("you are not a member of group " + msg.Header[0])
 	}
+	return nil
 }

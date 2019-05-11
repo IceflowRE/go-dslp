@@ -9,6 +9,7 @@ services:
       context: ../
       dockerfile: ./docker/Dockerfile
     restart: unless-stopped
+    command: --server 28813 --version 2.0
     ports:
       - 28813:28813
     logging:

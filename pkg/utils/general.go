@@ -15,13 +15,14 @@ func Println(conn net.Conn, tag string, msg interface{}) {
 // Returns the beginning of the nth separator.
 // Returns -1 if the nth separator was not found.
 func IndexN(s []byte, sep []byte, n int) int {
-	i := 0
-	c := 0
+	i := -len(sep)
 	if n <= 0 {
 		return -1
 	}
 	for cur := 0; cur < n; cur++ {
-		c = bytes.Index(s[c:], sep)
+		// do not include already found separators
+		i += len(sep)
+		c := bytes.Index(s[i:], sep)
 		if c == -1 {
 			return -1
 		} else {

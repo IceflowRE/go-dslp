@@ -10,26 +10,26 @@ import (
 var connections = make(map[string]net.Conn)
 var connectionsLock = sync.RWMutex{}
 
-func AddConn(conn net.Conn) {
+func addConn(conn net.Conn) {
 	connectionsLock.Lock()
 	defer connectionsLock.Unlock()
 	connections[conn.RemoteAddr().(*net.TCPAddr).IP.String()] = conn
 }
 
-func RemoveConn(conn net.Conn) {
+func removeConn(conn net.Conn) {
 	connectionsLock.Lock()
 	defer connectionsLock.Unlock()
 	delete(connections, conn.RemoteAddr().(*net.TCPAddr).IP.String())
 }
 
-func SendPeerNotify(ip net.IP, content string) {
+func sendPeerNotify(ip net.IP, content string) {
 	connectionsLock.RLock()
 	defer connectionsLock.RUnlock()
 	ipCmp := ip.String()
 	msg := NewPeerNotfiy(ip, content)
 	for ipStr, conn := range connections {
 		if ipStr == ipCmp {
-			message.SendMessage(msg, conn)
+			message.SendMessage(conn, msg)
 			break
 		}
 	}

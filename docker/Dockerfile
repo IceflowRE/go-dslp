@@ -32,4 +32,4 @@ WORKDIR /go-dslp
 COPY --from=build /build/go-dslp/build/go-dslp .
 
 USER iceflower
-ENTRYPOINT ["./go-dslp", "--server", "28813"]
+ENTRYPOINT ["./go-dslp"]

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -12,18 +11,6 @@ import (
 
 	"github.com/IceflowRE/go-dslp/pkg/v1_2"
 )
-
-func Start(address string) {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		log.Panicln(err)
-	}
-	log.Println("Connected to", address)
-	go HandleRequest(conn)
-	defer conn.Close()
-	defer log.Println("Closed connection to", address)
-	MainMenu(conn)
-}
 
 func MainMenu(conn net.Conn) {
 	input := bufio.NewScanner(os.Stdin)
