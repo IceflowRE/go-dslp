@@ -3,7 +3,6 @@ package v2_0
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -142,7 +141,6 @@ func (msg *Message) UpdateHeader() error {
 }
 
 func (msg *Message) Valid() error {
-	fmt.Println(msg == nil)
 	var errMsg string
 	switch msg.Type {
 	case TRequestTime:

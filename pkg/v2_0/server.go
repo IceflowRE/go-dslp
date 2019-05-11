@@ -1,8 +1,6 @@
 package v2_0
 
 import (
-	"bytes"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -124,8 +122,6 @@ func ScanMessage(data []byte) (*Message, []byte) {
 		// add body length and linebreak length to message end index
 		msgEnd += bodyEndPos + len(LineBreak)
 		msg.Body = data[res[1]:msgEnd]
-		fmt.Println("askdfjasölkdjföaslkdjf", msg.Body)
-		fmt.Println(bytes.Count(msg.Body, LineBreak))
 	case TUserFileNotify:
 		// if not the whole body is available wait for the missing data
 		if len(data) < msgEnd+bodySize {
