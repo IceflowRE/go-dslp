@@ -7,9 +7,9 @@ FROM golang:alpine AS build
 RUN apk update \
     && apk --no-cache add make git gcc musl-dev
 
-COPY ./ /build/go-dslp
+COPY ./ /build
 
-RUN cd /build/go-dslp \
+RUN cd /build \
     && go build -x -o go-dslp
 
 ###################################
@@ -29,7 +29,7 @@ RUN adduser -S -D iceflower \
     && chown iceflower: -R /go-dslp
 
 WORKDIR /go-dslp
-COPY --from=build /build/go-dslp/build/go-dslp .
+COPY --from=build /build/go-dslp .
 
 USER iceflower
 ENTRYPOINT ["./go-dslp"]
