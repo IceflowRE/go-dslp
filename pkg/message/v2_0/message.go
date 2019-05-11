@@ -135,7 +135,7 @@ func (msg *Message) UpdateHeader() error {
 		msg.Header = make([]string, 1)
 		msg.Header[0] = strconv.Itoa(bytes.Count(msg.Body, LineBreak))
 	default:
-		errors.New("don't know how to make a header for type " + msg.Type)
+		return errors.New("don't know how to make a header for type " + msg.Type)
 	}
 	return nil
 }

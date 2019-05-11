@@ -127,14 +127,15 @@ func writeMessage(conn net.Conn, msgType string) {
 		input.Scan()
 		filename := input.Text()
 
-		file, err := ioutil.ReadFile(filename) // b has type []byte
+		var file []byte
+		file, err = ioutil.ReadFile(filename) // b has type []byte
 		if err != nil {
-			errors.New("cannot use filename: " + err.Error())
+			err = errors.New("cannot use filename: " + err.Error())
 			break
 		}
 
 		var contentType string
-		if contentType := http.DetectContentType(file[:512]); contentType == "application/octet-stream" {
+		if contentType = http.DetectContentType(file[:512]); contentType == "application/octet-stream" {
 			fmt.Println("could not detect mime type automatically, please specify yourself:")
 			input.Scan()
 			contentType = input.Text()
@@ -147,7 +148,7 @@ func writeMessage(conn net.Conn, msgType string) {
 
 		_, err = conn.Write(msgv2_0.NewErrorMsg(content[0]).ToBytes())
 	default:
-		err = errors.New("Cannot handle the choosen message type.")
+		err = errors.New("Cannot handle the chosen message type.")
 	}
 	if err != nil {
 		fmt.Println("Error: " + err.Error())

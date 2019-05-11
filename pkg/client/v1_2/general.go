@@ -105,7 +105,7 @@ func writeMessage(conn net.Conn, msgType string) {
 
 		_, err = conn.Write(msgv1_2.NewErrorMsg(content).ToBytes())
 	default:
-		err = errors.New("Cannot handle the choosen message type.")
+		err = errors.New("Cannot handle the chosen message type.")
 	}
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
