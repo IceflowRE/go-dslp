@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
+	msgv2_0 "github.com/IceflowRE/go-dslp/pkg/message/v2_0"
 	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
@@ -77,7 +78,7 @@ func nickValid(conn net.Conn, nick string) bool {
 }
 
 // requires a valid message
-func sendToUser(conn net.Conn, msg *Message) error {
+func sendToUser(conn net.Conn, msg *msgv2_0.Message) error {
 	if !nickValid(conn, msg.Header[0]) {
 		return errors.New("nick " + msg.Header[0] + " is not registered by you")
 	} else if !nickExist(msg.Header[1]) {

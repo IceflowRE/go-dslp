@@ -1,4 +1,4 @@
-package serverv2_0
+package messagev2_0
 
 import (
 	"bytes"
@@ -133,7 +133,7 @@ func (msg *Message) UpdateHeader() error {
 		msg.Header[4] = strconv.Itoa(len(msg.Body))
 	case TError:
 		msg.Header = make([]string, 1)
-		msg.Header[0] = strconv.Itoa(len(msg.Body))
+		msg.Header[0] = strconv.Itoa(bytes.Count(msg.Body, LineBreak))
 	default:
 		errors.New("don't know how to make a header for type " + msg.Type)
 	}
@@ -235,7 +235,7 @@ func (msg *Message) Valid() error {
 			errMsg = "header does not contains all required data"
 		} else if lines, err := strconv.Atoi(msg.Header[0]); err != nil {
 			errMsg = "header must contain the body size"
-		} else if bytes.Count(msg.Body, LineBreak) == lines {
+		} else if bytes.Count(msg.Body, LineBreak) != lines {
 			errMsg = "body does not match the size written in header"
 		}
 	default:

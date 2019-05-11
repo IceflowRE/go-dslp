@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
+	msgv1_2 "github.com/IceflowRE/go-dslp/pkg/message/v1_2"
 )
 
 var connections = make(map[string]net.Conn)
@@ -26,7 +27,7 @@ func sendPeerNotify(ip net.IP, content string) {
 	connectionsLock.RLock()
 	defer connectionsLock.RUnlock()
 	ipCmp := ip.String()
-	msg := NewPeerNotfiy(ip, content)
+	msg := msgv1_2.NewPeerNotfiy(ip, content)
 	for ipStr, conn := range connections {
 		if ipStr == ipCmp {
 			message.SendMessage(conn, msg)

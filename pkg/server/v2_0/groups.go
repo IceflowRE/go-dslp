@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
+	msgv2_0 "github.com/IceflowRE/go-dslp/pkg/message/v2_0"
 	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
@@ -53,7 +54,7 @@ func leaveGroup(conn net.Conn, group string) error {
 }
 
 // requires a valid message
-func sendToGroup(conn net.Conn, msg *Message) error {
+func sendToGroup(conn net.Conn, msg *msgv2_0.Message) error {
 	groupsLock.RLock()
 	defer groupsLock.RUnlock()
 	if value, ok := groups[msg.Header[0]]; ok {

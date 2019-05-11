@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
+	msgv1_2 "github.com/IceflowRE/go-dslp/pkg/message/v1_2"
 	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
@@ -37,7 +38,7 @@ func HandleRequest(conn net.Conn) {
 			// TODO: maybe remove invalid buffer bytes
 			var msg message.IMessage
 			util.Println(conn, "BUFFER", buf)
-			msg, buf = ScanMessage(buf)
+			msg, buf = msgv1_2.ScanMessage(buf)
 			if msg != nil {
 				err = msg.Valid()
 				if content := msg.GetContent(); content != nil {
@@ -49,7 +50,7 @@ func HandleRequest(conn net.Conn) {
 					err = handleMessage(msg, conn)
 				}
 				if err != nil {
-					message.SendMessage(conn, NewErrorMsg(err.Error()))
+					message.SendMessage(conn, msgv1_2.NewErrorMsg(err.Error()))
 					return
 				}
 			}
@@ -59,44 +60,30 @@ func HandleRequest(conn net.Conn) {
 		}
 
 		if len(buf) > 16384 {
-			message.SendMessage(conn, NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting."))
+			message.SendMessage(conn, msgv1_2.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting."))
 			return
 		}
 	}
 }
 
-func ScanMessage(data []byte) (message.IMessage, []byte) {
-	res := rxMessage.FindSubmatchIndex(data)
-	if res != nil {
-		msg := NewMessage()
-		msg.Type = string(data[res[2]:res[3]])
-		if res[4] != -1 {
-			msg.Content = data[res[4]:res[5]]
-		}
-		return msg, data[res[1]:]
-	}
-
-	return nil, data
-}
-
 // HandleMessage requires a valid message
 func handleMessage(msg message.IMessage, conn net.Conn) error {
 	switch msg.GetType() {
-	case TRequestTime:
-		message.SendMessage(conn, NewResponseTimeMsg())
-	case TResponseTime:
+	case msgv1_2.TRequestTime:
+		message.SendMessage(conn, msgv1_2.NewResponseTimeMsg())
+	case msgv1_2.TResponseTime:
 		// do nothing
-	case TGroupJoin:
+	case msgv1_2.TGroupJoin:
 		joinGroup(conn, *msg.GetContent())
-	case TGroupLeave:
+	case msgv1_2.TGroupLeave:
 		return leaveGroup(conn, *msg.GetContent())
-	case TGroupNotify:
+	case msgv1_2.TGroupNotify:
 		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
 		sendToGroup(split[0], split[1])
-	case TPeerNotify:
+	case msgv1_2.TPeerNotify:
 		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
 		sendPeerNotify(net.ParseIP(split[0]), split[1])
-	case TError:
+	case msgv1_2.TError:
 		util.Println(conn, "Error message received", *msg.GetContent())
 	default:
 		util.Println(conn, "type invalid", msg.GetType())

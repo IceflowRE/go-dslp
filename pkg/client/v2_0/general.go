@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/IceflowRE/go-dslp/pkg/server/v2_0"
+	msgv2_0 "github.com/IceflowRE/go-dslp/pkg/message/v2_0"
 )
 
 func MainMenu(conn net.Conn) {
@@ -41,17 +41,17 @@ func writeMenu(conn net.Conn) {
 	input := bufio.NewScanner(os.Stdin)
 	for !validInput {
 		fmt.Println("Write Message:")
-		for idx, msgType := range serverv2_0.Types {
+		for idx, msgType := range msgv2_0.Types {
 			fmt.Println(strconv.Itoa(idx) + ": " + msgType)
 		}
-		fmt.Println(strconv.Itoa(len(serverv2_0.Types)) + ": Back")
+		fmt.Println(strconv.Itoa(len(msgv2_0.Types)) + ": Back")
 
 		input.Scan()
 		selec, err := strconv.Atoi(input.Text())
-		if err == nil && selec < len(serverv2_0.Types) {
-			writeMessage(conn, serverv2_0.Types[selec])
+		if err == nil && selec < len(msgv2_0.Types) {
+			writeMessage(conn, msgv2_0.Types[selec])
 			validInput = true
-		} else if err == nil && selec == len(serverv2_0.Types) {
+		} else if err == nil && selec == len(msgv2_0.Types) {
 			break
 		}
 	}
@@ -60,23 +60,23 @@ func writeMenu(conn net.Conn) {
 func writeMessage(conn net.Conn, msgType string) {
 	var err error
 	switch msgType {
-	case serverv2_0.TRequestTime:
-		_, err = conn.Write(serverv2_0.NewRequestTime().ToBytes())
-	case serverv2_0.TResponseTime:
-		_, err = conn.Write(serverv2_0.NewResponseTimeMsg().ToBytes())
-	case serverv2_0.TGroupJoin:
+	case msgv2_0.TRequestTime:
+		_, err = conn.Write(msgv2_0.NewRequestTime().ToBytes())
+	case msgv2_0.TResponseTime:
+		_, err = conn.Write(msgv2_0.NewResponseTimeMsg().ToBytes())
+	case msgv2_0.TGroupJoin:
 		fmt.Println("Group to join:")
 		input := bufio.NewScanner(os.Stdin)
 		input.Scan()
 
-		_, err = conn.Write(serverv2_0.NewGroupJoin(input.Text()).ToBytes())
-	case serverv2_0.TGroupLeave:
+		_, err = conn.Write(msgv2_0.NewGroupJoin(input.Text()).ToBytes())
+	case msgv2_0.TGroupLeave:
 		fmt.Println("Group to leave:")
 		input := bufio.NewScanner(os.Stdin)
 		input.Scan()
 
-		_, err = conn.Write(serverv2_0.NewGroupLeave(input.Text()).ToBytes())
-	case serverv2_0.TGroupNotify:
+		_, err = conn.Write(msgv2_0.NewGroupLeave(input.Text()).ToBytes())
+	case msgv2_0.TGroupNotify:
 		fmt.Println("Group to notify:")
 		input := bufio.NewScanner(os.Stdin)
 		input.Scan()
@@ -86,20 +86,20 @@ func writeMessage(conn net.Conn, msgType string) {
 		fmt.Println("Message (empty line to end):")
 		content := getContent()
 
-		_, err = conn.Write(serverv2_0.NewGroupNotify(group, content).ToBytes())
-	case serverv2_0.TUserJoin:
+		_, err = conn.Write(msgv2_0.NewGroupNotify(group, content).ToBytes())
+	case msgv2_0.TUserJoin:
 		fmt.Println("username to register:")
 		input := bufio.NewScanner(os.Stdin)
 		input.Scan()
 
-		_, err = conn.Write(serverv2_0.NewUserJoin(input.Text()).ToBytes())
-	case serverv2_0.TUserLeave:
+		_, err = conn.Write(msgv2_0.NewUserJoin(input.Text()).ToBytes())
+	case msgv2_0.TUserLeave:
 		fmt.Println("username to unregister:")
 		input := bufio.NewScanner(os.Stdin)
 		input.Scan()
 
-		_, err = conn.Write(serverv2_0.NewUserLeave(input.Text()).ToBytes())
-	case serverv2_0.TUserTextNotify:
+		_, err = conn.Write(msgv2_0.NewUserLeave(input.Text()).ToBytes())
+	case msgv2_0.TUserTextNotify:
 		input := bufio.NewScanner(os.Stdin)
 		fmt.Println("username to send:")
 		input.Scan()
@@ -112,8 +112,8 @@ func writeMessage(conn net.Conn, msgType string) {
 		fmt.Println("Message (empty line to end):")
 		content := getContent()
 
-		_, err = conn.Write(serverv2_0.NewUserTextNotify(sender, target, content).ToBytes())
-	case serverv2_0.TUserFileNotify:
+		_, err = conn.Write(msgv2_0.NewUserTextNotify(sender, target, content).ToBytes())
+	case msgv2_0.TUserFileNotify:
 		input := bufio.NewScanner(os.Stdin)
 		fmt.Println("username to send:")
 		input.Scan()
@@ -140,12 +140,12 @@ func writeMessage(conn net.Conn, msgType string) {
 			contentType = input.Text()
 		}
 
-		_, err = conn.Write(serverv2_0.NewUserFileNotify(sender, target, filepath.Base(filename), contentType, file).ToBytes())
-	case serverv2_0.TError:
+		_, err = conn.Write(msgv2_0.NewUserFileNotify(sender, target, filepath.Base(filename), contentType, file).ToBytes())
+	case msgv2_0.TError:
 		fmt.Println("Message (empty line to end):")
 		content := getContent()
 
-		_, err = conn.Write(serverv2_0.NewErrorMsg(content[0]).ToBytes())
+		_, err = conn.Write(msgv2_0.NewErrorMsg(content[0]).ToBytes())
 	default:
 		err = errors.New("Cannot handle the choosen message type.")
 	}
@@ -173,9 +173,9 @@ func getContent() []string {
 func showMessages() {
 	fmt.Println(strings.Repeat("=", 7), "New Messages", strings.Repeat("=", 7))
 	for msgBuf.Size() > 0 {
-		msg := msgBuf.Remove().(*serverv2_0.Message)
+		msg := msgBuf.Remove().(*msgv2_0.Message)
 
-		if msg.Type == serverv2_0.TUserFileNotify {
+		if msg.Type == msgv2_0.TUserFileNotify {
 			err := ioutil.WriteFile(msg.Header[3], msg.Body, 0644)
 			if err == nil {
 				fmt.Println(msg.GetType(), " || ", "type (", msg.Header[2], "), size (", msg.Header[4], ") saved as", msg.Header[3])

@@ -1,4 +1,4 @@
-package serverv2_0
+package messagev2_0
 
 import (
 	"bytes"

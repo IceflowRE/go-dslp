@@ -7,7 +7,7 @@ import (
 	"net"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/server/v2_0"
+	msgv2_0 "github.com/IceflowRE/go-dslp/pkg/message/v2_0"
 	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
@@ -30,15 +30,18 @@ func HandleRequest(conn net.Conn) {
 		ok := true
 		for ok {
 			// TODO: maybe remove invalid buffer bytes
-			var msg *serverv2_0.Message
-			msg, buf = serverv2_0.ScanMessage(buf)
+			var msg *msgv2_0.Message
+			msg, buf = msgv2_0.ScanMessage(buf)
 			if msg != nil {
 				err = msg.Valid()
 				if err == nil {
+					if msg.Type == msgv2_0.TError {
+						fmt.Println("Error message was received and the connection may closed.")
+					}
 					msgBuf.Add(msg)
 				}
 				if err != nil {
-					message.SendMessage(conn, serverv2_0.NewErrorMsg(err.Error()))
+					message.SendMessage(conn, msgv2_0.NewErrorMsg(err.Error()))
 					return
 				}
 			}
@@ -48,7 +51,7 @@ func HandleRequest(conn net.Conn) {
 		}
 
 		if len(buf) > 16384 {
-			message.SendMessage(conn, serverv2_0.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting"))
+			message.SendMessage(conn, msgv2_0.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting"))
 			fmt.Println("Message exceeded 16384 bytes size. Disconnecting.")
 			return
 		}

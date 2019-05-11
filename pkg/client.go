@@ -4,8 +4,8 @@ import (
 	"log"
 	"net"
 
-	clientv1_2 "github.com/IceflowRE/go-dslp/pkg/client/v1_2"
-	clientv2_0 "github.com/IceflowRE/go-dslp/pkg/client/v2_0"
+	"github.com/IceflowRE/go-dslp/pkg/client/v1_2"
+	"github.com/IceflowRE/go-dslp/pkg/client/v2_0"
 )
 
 func StartClient(address string, version string) {

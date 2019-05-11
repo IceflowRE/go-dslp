@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
+	msgv1_2 "github.com/IceflowRE/go-dslp/pkg/message/v1_2"
 	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
@@ -55,7 +56,7 @@ func leaveGroup(conn net.Conn, group string) error {
 func sendToGroup(group string, content string) {
 	groupsLock.RLock()
 	defer groupsLock.RUnlock()
-	msg := NewGroupNotify(group, content)
+	msg := msgv1_2.NewGroupNotify(group, content)
 	if value, ok := groups[group]; ok {
 		for member := range value {
 			message.SendMessage(member, msg)
