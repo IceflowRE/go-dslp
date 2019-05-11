@@ -1,4 +1,4 @@
-package v1_2
+package serverv1_2
 
 import (
 	"net"

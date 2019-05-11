@@ -4,8 +4,8 @@ import (
 	"log"
 	"net"
 
-	v12Client "github.com/IceflowRE/go-dslp/pkg/v1_2/client"
-	v20Client "github.com/IceflowRE/go-dslp/pkg/v2_0/client"
+	clientv1_2 "github.com/IceflowRE/go-dslp/pkg/client/v1_2"
+	clientv2_0 "github.com/IceflowRE/go-dslp/pkg/client/v2_0"
 )
 
 func StartClient(address string, version string) {
@@ -16,9 +16,9 @@ func StartClient(address string, version string) {
 	log.Println("Connected to", address)
 	switch version {
 	case "1.2":
-		go v12Client.HandleRequest(conn)
+		go clientv1_2.HandleRequest(conn)
 	case "2.0":
-		go v20Client.HandleRequest(conn)
+		go clientv2_0.HandleRequest(conn)
 	default:
 		return
 	}
@@ -27,9 +27,9 @@ func StartClient(address string, version string) {
 
 	switch version {
 	case "1.2":
-		v12Client.MainMenu(conn)
+		clientv1_2.MainMenu(conn)
 	case "2.0":
-		v20Client.MainMenu(conn)
+		clientv2_0.MainMenu(conn)
 	default:
 		return
 	}

@@ -1,17 +1,16 @@
-package client
+package clientv1_2
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
-	"github.com/IceflowRE/go-dslp/pkg/v2_0"
+	"github.com/IceflowRE/go-dslp/pkg/server/v1_2"
+	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
-var msgBuf = utils.NewCircularBuffer(50)
+var msgBuf = util.NewCircularBuffer(50)
 
 func HandleRequest(conn net.Conn) {
 	buf := make([]byte, 0, 1024) // big buffer
@@ -31,14 +30,14 @@ func HandleRequest(conn net.Conn) {
 		for ok {
 			// TODO: maybe remove invalid buffer bytes
 			var msg message.IMessage
-			msg, buf = v2_0.ScanMessage(buf)
+			msg, buf = serverv1_2.ScanMessage(buf)
 			if msg != nil {
 				err = msg.Valid()
 				if err == nil {
 					msgBuf.Add(msg)
 				}
 				if err != nil {
-					message.SendMessage(conn, v2_0.NewErrorMsg(err.Error()))
+					message.SendMessage(conn, serverv1_2.NewErrorMsg(err.Error()))
 					return
 				}
 			}
@@ -48,8 +47,7 @@ func HandleRequest(conn net.Conn) {
 		}
 
 		if len(buf) > 16384 {
-			message.SendMessage(conn, v2_0.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting"))
-			fmt.Println("Message exceeded 16384 bytes size. Disconnecting.")
+			message.SendMessage(conn, serverv1_2.NewErrorMsg("Message exceeded 16384 bytes size. Disconnecting."))
 			return
 		}
 	}

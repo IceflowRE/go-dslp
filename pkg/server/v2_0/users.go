@@ -1,4 +1,4 @@
-package v2_0
+package serverv2_0
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
+	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
 var nickConn = make(map[string]net.Conn)
@@ -27,7 +27,7 @@ func registerUser(conn net.Conn, nick string) error {
 	}
 	connNick[conn] = nick
 	nickConn[nick] = conn
-	utils.Println(conn, "NICK REGISTERED", nick)
+	util.Println(conn, "NICK REGISTERED", nick)
 	return nil
 }
 
@@ -43,7 +43,7 @@ func unregisterUser(conn net.Conn, nick string) error {
 	}
 	delete(connNick, conn)
 	delete(nickConn, nick)
-	utils.Println(conn, "NICK UNREGISTERED", nick)
+	util.Println(conn, "NICK UNREGISTERED", nick)
 	return nil
 }
 

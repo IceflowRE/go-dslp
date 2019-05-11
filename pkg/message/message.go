@@ -4,7 +4,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/IceflowRE/go-dslp/pkg/utils"
+	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
 type IMessage interface {
@@ -21,6 +21,6 @@ func SendMessage(conn net.Conn, msg IMessage) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		utils.Println(conn, "SENT ("+msg.GetType()+")", *msg.GetContent())
+		util.Println(conn, "SENT ("+msg.GetType()+")", *msg.GetContent())
 	}
 }

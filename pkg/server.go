@@ -5,8 +5,8 @@ import (
 	"net"
 	"strconv"
 
-	v12Server "github.com/IceflowRE/go-dslp/pkg/v1_2"
-	v20Server "github.com/IceflowRE/go-dslp/pkg/v2_0"
+	"github.com/IceflowRE/go-dslp/pkg/server/v1_2"
+	"github.com/IceflowRE/go-dslp/pkg/server/v2_0"
 )
 
 func StartServer(port int, version string) {
@@ -20,9 +20,9 @@ func StartServer(port int, version string) {
 	var handlerFunc func(conn net.Conn)
 	switch version {
 	case "1.2":
-		handlerFunc = v12Server.HandleRequest
+		handlerFunc = serverv1_2.HandleRequest
 	case "2.0":
-		handlerFunc = v20Server.HandleRequest
+		handlerFunc = serverv2_0.HandleRequest
 	default:
 		return
 	}

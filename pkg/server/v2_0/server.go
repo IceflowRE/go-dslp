@@ -1,4 +1,4 @@
-package v2_0
+package serverv2_0
 
 import (
 	"io"
@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
+	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
 func HandleRequest(conn net.Conn) {
-	utils.Println(conn, "accepted connection", "")
-	defer utils.Println(conn, "closed connection", "")
+	util.Println(conn, "accepted connection", "")
+	defer util.Println(conn, "closed connection", "")
 	defer leaveAllGroups(conn)
 	defer freeUser(conn)
 	defer conn.Close()
@@ -33,15 +33,15 @@ func HandleRequest(conn net.Conn) {
 		// work until all valid message are proceeded
 		ok := true
 		for ok {
-			utils.Println(conn, "BUFFER", buf)
+			util.Println(conn, "BUFFER", buf)
 			var msg *Message
 			msg, buf = ScanMessage(buf)
 			if msg != nil {
 				err = msg.Valid()
 				if msg.GetContent() != nil {
-					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), *msg.GetContent())
+					util.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), *msg.GetContent())
 				} else {
-					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), nil)
+					util.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), nil)
 				}
 				if err == nil {
 					err = handleMessage(msg, conn)
@@ -113,7 +113,7 @@ func ScanMessage(data []byte) (*Message, []byte) {
 	// get body
 	switch msg.Type {
 	case TResponseTime, TGroupNotify, TUserTextNotify, TError:
-		bodyEndPos := utils.IndexN(data[res[1]:], LineBreak, bodySize)
+		bodyEndPos := util.IndexN(data[res[1]:], LineBreak, bodySize)
 		// if not the whole body is available wait for the missing data
 		if bodyEndPos == -1 {
 			return nil, data
@@ -153,9 +153,9 @@ func handleMessage(msg *Message, conn net.Conn) error {
 	case TUserTextNotify, TUserFileNotify:
 		return sendToUser(conn, msg)
 	case TError:
-		utils.Println(conn, "Error message received", *msg.GetContent())
+		util.Println(conn, "Error message received", *msg.GetContent())
 	default:
-		utils.Println(conn, "type invalid", msg.GetType())
+		util.Println(conn, "type invalid", msg.GetType())
 	}
 	return nil
 }

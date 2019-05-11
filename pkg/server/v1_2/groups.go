@@ -1,4 +1,4 @@
-package v1_2
+package serverv1_2
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
+	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
 var groups = make(map[string]map[net.Conn]struct{})
@@ -19,7 +19,7 @@ func joinGroup(conn net.Conn, group string) {
 		groups[group] = make(map[net.Conn]struct{})
 	}
 	groups[group][conn] = struct{}{}
-	utils.Println(conn, "GROUP JOIN", group)
+	util.Println(conn, "GROUP JOIN", group)
 }
 
 func leaveAllGroups(conn net.Conn) {
@@ -31,7 +31,7 @@ func leaveAllGroups(conn net.Conn) {
 			if len(value) == 0 {
 				delete(groups, group)
 			}
-			utils.Println(conn, "GROUP LEAVE", group)
+			util.Println(conn, "GROUP LEAVE", group)
 		}
 	}
 }
@@ -45,7 +45,7 @@ func leaveGroup(conn net.Conn, group string) error {
 			if len(value) == 0 {
 				delete(groups, group)
 			}
-			utils.Println(conn, "GROUP LEAVE", group)
+			util.Println(conn, "GROUP LEAVE", group)
 			return nil
 		}
 	}

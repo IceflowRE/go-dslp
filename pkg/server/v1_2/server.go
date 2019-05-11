@@ -1,4 +1,4 @@
-package v1_2
+package serverv1_2
 
 import (
 	"io"
@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/IceflowRE/go-dslp/pkg/message"
-	"github.com/IceflowRE/go-dslp/pkg/utils"
+	"github.com/IceflowRE/go-dslp/pkg/util"
 )
 
 func HandleRequest(conn net.Conn) {
-	utils.Println(conn, "accepted connection", "")
+	util.Println(conn, "accepted connection", "")
 	addConn(conn)
-	defer utils.Println(conn, "closed connection", "")
+	defer util.Println(conn, "closed connection", "")
 	defer leaveAllGroups(conn)
 	defer removeConn(conn)
 	defer conn.Close()
@@ -36,14 +36,14 @@ func HandleRequest(conn net.Conn) {
 		for ok {
 			// TODO: maybe remove invalid buffer bytes
 			var msg message.IMessage
-			utils.Println(conn, "BUFFER", buf)
+			util.Println(conn, "BUFFER", buf)
 			msg, buf = ScanMessage(buf)
 			if msg != nil {
 				err = msg.Valid()
 				if content := msg.GetContent(); content != nil {
-					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), *content)
+					util.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), *content)
 				} else {
-					utils.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), nil)
+					util.Println(conn, "RECEIVED ("+msg.GetType()+") valid: "+strconv.FormatBool(err == nil), nil)
 				}
 				if err == nil {
 					err = handleMessage(msg, conn)
@@ -97,9 +97,9 @@ func handleMessage(msg message.IMessage, conn net.Conn) error {
 		split := strings.SplitN(*msg.GetContent(), "\r\n", 2)
 		sendPeerNotify(net.ParseIP(split[0]), split[1])
 	case TError:
-		utils.Println(conn, "Error message received", *msg.GetContent())
+		util.Println(conn, "Error message received", *msg.GetContent())
 	default:
-		utils.Println(conn, "type invalid", msg.GetType())
+		util.Println(conn, "type invalid", msg.GetType())
 	}
 	return nil
 }
