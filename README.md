@@ -1,9 +1,9 @@
 # ircDiscordRelay
 ![maintained](https://img.shields.io/badge/maintained-yes-brightgreen.svg)
 ![Programming Language](https://img.shields.io/badge/language-Go-orange.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/iceflowRE/irc-discord-relay/blob/master/LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/iceflowRE/go-dslp/blob/master/LICENSE.md)
 
-[![Travis CI](https://img.shields.io/travis/com/IceflowRE/irc-discord-relay/master.svg?label=Travis%20CI)](https://travis-ci.com/IceflowRE/irc-discord-relay)
+[![Travis CI](https://img.shields.io/travis/com/IceflowRE/go-dslp/master.svg?label=Travis%20CI)](https://travis-ci.com/IceflowRE/go-dslp)
 [![Go report card](https://goreportcard.com/badge/github.com/IceflowRE/go-dslp)](https://goreportcard.com/report/github.com/IceflowRE/go-dslp)
 
 ---
