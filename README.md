@@ -3,14 +3,14 @@
 ![Programming Language](https://img.shields.io/badge/language-Go-orange.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/iceflowRE/go-dslp/blob/master/LICENSE.md)
 
-[![Travis CI](https://img.shields.io/travis/com/IceflowRE/go-dslp/master.svg?label=Travis%20CI)](https://travis-ci.com/IceflowRE/go-dslp)
+[![Github Actions](https://github.com/IceflowRE/go-dslp/workflows/Build/badge.svg)](https://github.com/IceflowRE/go-dslp/actions)
 [![Go report card](https://goreportcard.com/badge/github.com/IceflowRE/go-dslp)](https://goreportcard.com/report/github.com/IceflowRE/go-dslp)
 
 ---
 
 ## Distributed Systems Learning Protocol
 
-The Distributed Systems Learning Protocol (DSLP) realizes the transmission of messages over a already established transport connection, in this case TCP.
+The Distributed Systems Learning Protocol (DSLP) realizes the transmission of messages over an already established transport connection, in this case TCP.
 
 ---
 
