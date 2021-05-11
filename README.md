@@ -1,5 +1,5 @@
 # go-dslp
-![maintained](https://img.shields.io/badge/maintained-yes-brightgreen.svg)
+![maintained](https://img.shields.io/badge/maintained-no-red.svg)
 ![Programming Language](https://img.shields.io/badge/language-Go-orange.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/iceflowRE/go-dslp/blob/master/LICENSE.md)
 
